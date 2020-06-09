@@ -13,7 +13,7 @@
 """
 __author__ = 'wang6237'
 
-from models import curd
+from models import crud
 from models import schemas
 from models.model import get_db
 from typing import List
@@ -32,16 +32,16 @@ router = APIRouter()
 # 新建用户x
 @router.post("/", response_model=schemas.User, dependencies=[Depends(get_token_header)])
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = curd.get_user_by_name(db, username=user.username)
+    db_user = crud.get_user_by_name(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")  # 电子邮件已注册
-    return curd.create_user(db=db, user=user)
+    return crud.create_user(db=db, user=user)
 
 
 # 读取用户（用户ID范围）
 @router.get("/", dependencies=[Depends(get_token_header)])
 async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = curd.get_users(db, skip=skip, limit=limit)
+    users = crud.get_users(db, skip=skip, limit=limit)
     return {'total': len(users), 'items': users}
 
 
@@ -60,7 +60,7 @@ async def get_user_info():
 # 用ID的方式读取用户
 @router.get("/{user_id}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
 async def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = curd.get_user(db, user_id=user_id)
+    db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
@@ -69,7 +69,7 @@ async def read_user(user_id: int, db: Session = Depends(get_db)):
 @router.get("/users/{username}")
 async def read_user(username: str, db: Session = Depends(get_db)):
     print(username)
-    db_user = curd.get_user_by_name(db, username=username)
+    db_user = crud.get_user_by_name(db, username=username)
     print(db_user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")

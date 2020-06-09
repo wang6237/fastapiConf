@@ -13,7 +13,7 @@
 """
 __author__ = 'wang6237'
 
-from models import curd
+from models import crud
 from models import schemas
 from models.model import get_db
 import json
@@ -27,13 +27,13 @@ router = APIRouter()
 
 @router.get("/")
 async def getEnvList(page: int = 0, size: int = 100, db: Session = Depends(get_db)):
-    r = curd.getEnvs(db, size=size, page=page)
+    r = crud.getEnvs(db, size=size, page=page)
     return {'total': len(r), 'items': r}
 
 
 @router.get("/{env_id}")
 async def getEnv(env_id: int, db: Session = Depends(get_db)):
-    r = curd.getEnvs_by_id(db, env_id=env_id)
+    r = crud.getEnvs_by_id(db, env_id=env_id)
     if r:
         return {'type': 'success', 'msg': r}
     else:
@@ -42,10 +42,10 @@ async def getEnv(env_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{env_id}")
 async def editEnv(env_id: int, env: schemas.Env, db: Session = Depends(get_db)):
-    temp = curd.getEnvs_by_id(db, env_id=env_id)
+    temp = crud.getEnvs_by_id(db, env_id=env_id)
     # print(temp.name)
     if temp:
-        r = curd.editEnv(db, env_id=env_id, env=env)
+        r = crud.editEnv(db, env_id=env_id, env=env)
         if r:
             return {'type': 'success', 'msg': '编辑成功'}
         else:
@@ -58,7 +58,7 @@ async def editEnv(env_id: int, env: schemas.Env, db: Session = Depends(get_db)):
 async def createEnv(env: schemas.EnvCreate, db: Session = Depends(get_db)):
     print(env)
     # print(db)
-    e = curd.getEnvs_by_name(db, env_name=env.name)
+    e = crud.getEnvs_by_name(db, env_name=env.name)
     # print(e)
     if e:
         # raise HTTPException(status_code=400, detail="The template name already exists")
@@ -72,7 +72,7 @@ async def createEnv(env: schemas.EnvCreate, db: Session = Depends(get_db)):
             path = path + '/'
         # print(env)
         for name in env.template_name:
-            templ = curd.getTemplate_by_name(db, template_name=name)
+            templ = crud.getTemplate_by_name(db, template_name=name)
             if templ.path[0] == '/':
                 templ.path = templ.path[1:]
                 t = {
@@ -90,7 +90,7 @@ async def createEnv(env: schemas.EnvCreate, db: Session = Depends(get_db)):
                 c.append(t)
             print('template>>>>>', c)
         env.content = json.dumps(c)
-        curd.createEnv(db, env=env)
+        crud.createEnv(db, env=env)
         # return t
         return {'type': 'success', 'msg': '增加成功'}
     # return {'type': 'success', 'msg': '增加成功'}
@@ -98,9 +98,9 @@ async def createEnv(env: schemas.EnvCreate, db: Session = Depends(get_db)):
 
 @router.delete("/{env_id}")
 async def deleteEnv(env_id: int, db: Session = Depends(get_db)):
-    env = curd.getEnvs_by_id(db, env_id=env_id)
+    env = crud.getEnvs_by_id(db, env_id=env_id)
     if env:
-        curd.deleteEnv(db, env_id=env_id)
+        crud.deleteEnv(db, env_id=env_id)
         return {'type': 'success', 'msg': '删除成功'}
     else:
         return {'type': 'error', 'msg': '删除失败，数据不存在'}

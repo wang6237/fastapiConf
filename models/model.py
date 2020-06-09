@@ -15,23 +15,26 @@ __author__ = 'wang6237'
 
 from sqlalchemy import create_engine, Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapiConf.sqlite"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # sessionmaker 会话生成器
-
+# Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db_session = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
 Base = declarative_base()
 
 
 # Dependency 依赖项
 def get_db():
     try:
-        db = SessionLocal()  # 本地会话
+        db = db_session()  # 本地会话
         yield db
     finally:
         db.close()
@@ -75,4 +78,4 @@ class User(Base):
     role = Column(String(80))
 
     def __repr__(self):
-        return '<User %r>' % self.email
+        return '<User %r>' % self.username

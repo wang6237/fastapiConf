@@ -91,13 +91,11 @@ def deleteTemplate(db: Session, template_id: int):
 
 # 通过id查询用户信息
 def get_user(db: Session, user_id: int):
-    print(dir(db))
+    # print(dir(db))
     return db.query(model.User).filter(model.User.id == user_id).first()  # 过滤器
 
 
 def get_user_by_name(db: Session, username: str):
-    # print(db)
-    # db = get_db()
     return db.query(model.User).filter(model.User.username == username).first()
 
 

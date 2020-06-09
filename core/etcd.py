@@ -17,7 +17,13 @@ import json
 import hashlib
 import configparser
 
-from  core.Base import config
+config = configparser.ConfigParser()
+try:
+    config.read('/config/config.ini')
+    print('@@@@@@@@@2', config.sections(), 'F!!!!!!!!!')
+except Exception as e:
+    print(e)
+
 
 class GetEtcdApi(object):
     """
@@ -26,7 +32,9 @@ class GetEtcdApi(object):
 
     def __init__(self, key):
         # config.get("etcd","etcdBaseUrl")
-        self.url = config.get("etcd", "etcdBaseUrl") + key
+        # print(config.sections(), '>>>>>>>>>')
+        # self.url = config.get("etcd", "etcdBaseUrl") + key
+        self.url = "http://127.0.0.1:4001/v2/keys" + key
         super(GetEtcdApi, self).__init__()
 
     def GetKey(self):

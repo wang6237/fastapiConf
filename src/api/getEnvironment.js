@@ -47,9 +47,9 @@ export function syncEtcdDelete(path, envId) {
   })
 }
 
-export function syncState(data) {
+export function syncState(envId, data) {
   return request({
-    url: '/v1/env/sync/state/',
+    url: '/v1/env/sync/state/' + envId,
     method: 'put',
     data
   })

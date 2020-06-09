@@ -66,6 +66,11 @@
     name: 'sync',
     components: {},
     props: ['configInfo', 'envId'],
+    // provide (){
+    //   return {
+    //     reload: this.reload
+    //   }
+    // },
     data(){
       return {
         isHidden: false,
@@ -78,10 +83,11 @@
       }
     },
     created() {
-      this.intervalid1 = setInterval(() => {
-      // 根据porjectSelected的值，刷新stack信息
-        this.refresh()
-      }, 5000)
+      this.reload()
+      // this.intervalid1 = setInterval(() => {
+      // // 根据porjectSelected的值，刷新stack信息
+      //   this.refresh()
+      // }, 5000)
     },
     methods: {
       handleSyncEtcd(row){
@@ -113,15 +119,19 @@
           this.$emit("reload", '刷新页面')
         })
       },
-      refresh(){
-        console.log(this.configInfo, 'refresh>>>>>>')
+      reload(){
+        // alert(this.configInfo)
+
         for (let i in this.configInfo){
-          const postData = {
-            'path': this.configInfo[i]['path'],
-            'content': this.configInfo[i]['content'],
-            'envId': this.envId
-          }
-          syncState(postData).then(res => {
+          // alert(i)
+          // const postData = {
+          //   'templateInfo': this.configInfo[i],
+          //   'path': this.configInfo[i]['path'],
+          //   'content': this.configInfo[i]['content'],
+          //   'envId': this.envId
+          // }
+
+          syncState(this.envId, this.configInfo[i]).then(res => {
             // console.log(res.data.state)
             const state = res.data.state
             const items = res.data.items
@@ -134,6 +144,9 @@
               this.configInfo[i]['state'] = '数据一致'
               this.configInfo[i]['etcdData'] = items
             }
+          }).catch(() => {
+            console.log("获取数据错误！！将跳转到首页！")
+            this.$router.push({ path: this.redirect || '/dashboard' })
           })
         }
       },
@@ -145,9 +158,9 @@
 
       }
     },
-    beforeDestroy() {
-      clearInterval(this.intervalid1)
-    }
+    // beforeDestroy() {
+    //   clearInterval(this.intervalid1)
+    // }
   }
 
 </script>

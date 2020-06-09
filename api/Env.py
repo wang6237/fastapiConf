@@ -19,6 +19,9 @@ from models.model import get_db
 import json
 from fastapi import Depends, APIRouter, Request
 from sqlalchemy.orm import Session
+from core.etcd import GetEtcdApi
+from core.Base import hashTool
+from fastapi.encoders import jsonable_encoder
 # from starlette.requests import Request
 
 
@@ -27,8 +30,17 @@ router = APIRouter()
 
 @router.get("/")
 async def getEnvList(page: int = 0, size: int = 100, db: Session = Depends(get_db)):
-    r = crud.getEnvs(db, size=size, page=page)
-    return {'total': len(r), 'items': r}
+    env_lists = crud.getEnvs(db, size=size, page=page)
+    env_list = []
+    if len(env_lists) == 0:
+        return {'total': 0, 'items': []}
+    else:
+        for e in env_lists:
+            i = {'name': e.name, 'path': e.path, 'id': e.id,
+                 'content': json.loads(e.content), 'comment': e.comment}
+            env_list.append(i)
+    # return jsonify({'total': len(env_list), 'items': env_list})
+    return {'total': len(env_list), 'items': env_list}
 
 
 @router.get("/{env_id}")
@@ -107,9 +119,13 @@ async def deleteEnv(env_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/sync/")
-async def syncEtcd(request: Request):
-    print(request)
-    return {'type': 'success', 'msg': 'HAHAHAHAHA'}
+async def syncEtcd(template: schemas.TemplateBase, db: Session = Depends(get_db)):
+    # envInfo = crud.getEnvs_by_id(db, env_id=env_id)
+    print(template.path)
+    etcdServer = GetEtcdApi(template.path)
+    c = etcdServer.CreateKey(template.content, mkdir=False)
+    print(c)
+    return {'type': 'success', 'msg': '同步成功！'}
 
 
 @router.delete("/sync/")
@@ -117,6 +133,19 @@ async def syncEtcdDelete():
     pass
 
 
-@router.put("/sync/state/")
-async def syncEtcdState():
-    pass
+@router.put("/sync/state/{env_id}")
+async def syncEtcdState(env_id: int, template: schemas.TemplateBase, db: Session = Depends(get_db)):
+    envInfo = crud.getEnvs_by_id(db, env_id=env_id)
+    print(template.path)
+    etcdServer = GetEtcdApi(template.path)
+    c = etcdServer.GetKey()
+    if c['status_code'] == 200:
+        if 'errorCode' in c['data'].keys():
+            return {'state': 1, 'items': [c['data']['errorCode']]}
+        r = hashTool(template.content, c['data']['node']['value'])
+        if r:
+            return {'state': 0, 'items': c['data']['node']['value']}
+        else:
+            return {'state': 1, 'items': c['data']['node']['value']}
+    else:
+        return {'state': 1, 'items': []}

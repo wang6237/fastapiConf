@@ -27,7 +27,7 @@ from starlette import status
 from jwt import PyJWTError
 from passlib.context import CryptContext  # passlib 处理哈希加密的包
 from pydantic import BaseModel
-from models import curd
+from models import crud
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from models.model import get_db
 from starlette.status import HTTP_403_FORBIDDEN
@@ -83,7 +83,7 @@ def get_password_hash(password):
 
 # 验证用户
 def authenticate_user(fake_db, username: str, password: str):
-    user = curd.get_user_by_name(fake_db, username)
+    user = crud.get_user_by_name(fake_db, username)
     print(user)
     if not user or not verify_password(password, user.password):
         raise HTTPException(
@@ -127,12 +127,12 @@ def get_current_user(token: str = Security(oauth2_scheme)):
 
 
 async def get_token_header(request: Request):
-    token = request.headers['authorization'].split(' ')[1]
-    r = get_current_user(token=token)
-    print(r)
-    # raise HTTPException(status_code=403)
+    # print(request.headers)
+    try:
+        token = request.headers['authorization'].split(' ')[1]
+        r = get_current_user(token=token)
+    except KeyError:
+        raise HTTPException(status_code=403, detail="authorization header invalid, please do login")
     return r
     # if Authorization != "fake-super-secret-token":  # 假超密令牌
     #     raise HTTPException(status_code=400, detail="X-Token header invalid")  # X令牌头无效
-
-

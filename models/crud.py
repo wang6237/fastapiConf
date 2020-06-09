@@ -99,6 +99,26 @@ def get_user_by_name(db: Session, username: str):
     return db.query(model.User).filter(model.User.username == username).first()
 
 
+def del_user(db: Session, username: str):
+    db_user = db.query(model.User).filter(model.User.username == username).first()
+    db.delete(db_user)
+    db.commit()
+    return db_user
+
+
+def update_user(db: Session, user: schemas.UserCreate):
+    from core.Base import get_password_hash
+    fake_hashed_password = get_password_hash(user.password)
+    # print(user.username)
+    db_user = db.query(model.User).filter(model.User.username == user.username).update(email=user.email, password=fake_hashed_password, role=user.role)
+    # db_user
+    # db_user = model.User(email=user.email, password=fake_hashed_password, username=user.username, role=user.role)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
 # 通过id范围查询用户信息
 def get_users(db: Session, skip: int = 0, limit: int = 100):  # 初值末值
     return db.query(model.User).offset(skip).limit(limit).all()

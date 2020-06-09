@@ -26,7 +26,7 @@ export function getUserListInfo() {
 
 export function createUser(data) {
   return request({
-    url: 'v1/user/info',
+    url: 'v1/user/',
     method: 'post',
     data
     // params: { token }
@@ -35,7 +35,7 @@ export function createUser(data) {
 
 export function updateUser(data) {
   return request({
-    url: 'v1/user/info',
+    url: 'v1/user/',
     method: 'put',
     data
     // params: { token }
@@ -44,7 +44,7 @@ export function updateUser(data) {
 
 export function deleteUser(username) {
   return request({
-    url: 'v1/user/info',
+    url: 'v1/user/',
     method: 'delete',
     // data
     params: { username }

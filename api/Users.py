@@ -38,7 +38,26 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
-# 读取用户（用户ID范围）
+# 编辑用户x
+@router.put("/", response_model=schemas.User, dependencies=[Depends(get_token_header)])
+async def update_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_name(db, username=user.username)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="Username not found")  # 电子邮件已注册
+    return crud.update_user(db=db, user=user)
+
+
+# 删除用户
+@router.delete("/")
+async def delete_user(username: str, db: Session = Depends(get_db)):
+    db_user = crud.del_user(db, username=username)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    else:
+        pass
+
+
+# 读取用户（用户ID范围）列表
 @router.get("/", dependencies=[Depends(get_token_header)])
 async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
@@ -57,16 +76,17 @@ async def get_user_info():
     return userinfo
 
 
-# 用ID的方式读取用户
-@router.get("/{user_id}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
-async def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+# # 用ID的方式读取用户
+# @router.get("/{user_id}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
+# async def read_user(user_id: int, db: Session = Depends(get_db)):
+#     print(user_id)
+#     db_user = crud.get_user(db, user_id=user_id)
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return db_user
 
 
-@router.get("/users/{username}")
+@router.get("/{username}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
 async def read_user(username: str, db: Session = Depends(get_db)):
     print(username)
     db_user = crud.get_user_by_name(db, username=username)
@@ -89,17 +109,22 @@ async def login_for_access_token(login_data: schemas.Login, db: Session = Depend
     return {"token": access_token, "token_type": "bearer"}
 
 
-@router.post("/logout", dependencies=[Depends(get_token_header)])
+@router.post("/logout")
 def doLogOut(request: Request):
-    token = request.headers['authorization'].split(' ')[1]
-    # print(request.headers)
-    r = get_current_user(token=token)
-    # print(r, '>>>>>>>>>>>>>>>')
-    logout_token_expires = timedelta(seconds=LOGOUT_TOKEN_EXPIRE_SECONDS)
-    token = create_access_token(data={"sub": 'admin'}, expires_delta=logout_token_expires)
-    # sleep(10)
-    # print(get_current_user(token=token))
-    return {'type': 'success', 'msg': '退出成功'}
+    global token
+    try:
+        token = request.headers['authorization'].split(' ')[1]
+
+    except KeyError:
+        raise HTTPException(status_code=403, detail="authorization header invalid, please do login")
+    finally:
+        r = get_current_user(token=token)
+        logout_token_expires = timedelta(seconds=LOGOUT_TOKEN_EXPIRE_SECONDS)
+        token = create_access_token(data={"sub": 'admin'}, expires_delta=logout_token_expires)
+        return {'type': 'success', 'msg': '退出成功'}
+
+
+
 
 # @router.get("/items/")
 # async def read_items(token: str = Depends(oauth2_scheme)):

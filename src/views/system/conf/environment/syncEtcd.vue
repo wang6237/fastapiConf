@@ -80,14 +80,15 @@
             'db': '',
             'etcd': ''
           }],
+        Reload: true
       }
     },
     created() {
-      this.reload()
-      // this.intervalid1 = setInterval(() => {
-      // // 根据porjectSelected的值，刷新stack信息
-      //   this.refresh()
-      // }, 5000)
+      // this.reload()
+      this.intervalid1 = setInterval(() => {
+      // 根据porjectSelected的值，刷新stack信息
+        this.reload()
+      }, 5000)
     },
     methods: {
       handleSyncEtcd(row){
@@ -95,8 +96,13 @@
         syncEtcd(row).then(res => {
           const msg = res.data.msg
           const type = res.data.type
+          if(type === 'error'){
+            var title = 'Error'
+          }else {
+            var title = 'Success'
+          }
           this.$notify({
-            title: 'Success',
+            title: title,
             message: msg,
             type: type,
             duration: 2000
@@ -104,14 +110,19 @@
         })
       },
       handleSyncEtcdDelete: function(row, envId) {
-        const path = row.path
+        // const path = row.path
 
         // console.log(envId)
-        syncEtcdDelete(path, envId).then(res => {
+        syncEtcdDelete(envId, row).then(res => {
           const msg = res.data.msg
           const type = res.data.type
+          if(type === 'error'){
+            var title = 'Error'
+          }else {
+            var title = 'Success'
+          }
           this.$notify({
-            title: 'Success',
+            title: title,
             message: msg,
             type: type,
             duration: 2000
@@ -121,8 +132,8 @@
       },
       reload(){
         // alert(this.configInfo)
-
-        for (let i in this.configInfo){
+        if (this.Reload){
+          for (let i in this.configInfo){
           // alert(i)
           // const postData = {
           //   'templateInfo': this.configInfo[i],
@@ -145,9 +156,13 @@
               this.configInfo[i]['etcdData'] = items
             }
           }).catch(() => {
-            console.log("获取数据错误！！将跳转到首页！")
-            this.$router.push({ path: this.redirect || '/dashboard' })
+            this.Reload = false
+            // console.log("获取数据错误！！将跳转到首页！")
+            // this.$router.push({ path: this.redirect || '/dashboard' })
           })
+        }
+        }else {
+          console.log("reload is false!")
         }
       },
       handleComparison(dbData, etcdDate){
@@ -158,9 +173,9 @@
 
       }
     },
-    // beforeDestroy() {
-    //   clearInterval(this.intervalid1)
-    // }
+    beforeDestroy() {
+      clearInterval(this.intervalid1)
+    }
   }
 
 </script>

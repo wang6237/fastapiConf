@@ -120,29 +120,41 @@ async def deleteEnv(env_id: int, db: Session = Depends(get_db)):
 
 @router.post("/sync/")
 async def syncEtcd(template: schemas.TemplateBase, db: Session = Depends(get_db)):
-    # envInfo = crud.getEnvs_by_id(db, env_id=env_id)
-    print(template.path)
     etcdServer = GetEtcdApi(template.path)
     c = etcdServer.CreateKey(template.content, mkdir=False)
-    print(c)
     return {'type': 'success', 'msg': '同步成功！'}
 
 
-@router.delete("/sync/")
-async def syncEtcdDelete():
-    pass
+@router.delete("/sync/{env_id}")
+async def syncEtcdDelete(env_id: int, template: schemas.TemplateBase, db: Session = Depends(get_db)):
+    envInfo = crud.getEnvs_by_id(db, env_id=env_id)
+    etcdServer = GetEtcdApi(template.path)
+    if envInfo is None:
+        return {'type': 'error', 'msg': '数据不存在，无法删除'}
+    else:
+        data = json.loads(envInfo.content)
+        for index, i in enumerate(data):
+            if i['path'] == template.path:
+                data.pop(index)
+                r = etcdServer.DeleteKye()
+        envInfo.content = json.dumps(data)
+        e = crud.editEnv(db, env_id=env_id, env=envInfo)
+        print(e)
+        return {'type': 'success', 'msg': '删除成功'}
 
 
 @router.put("/sync/state/{env_id}")
 async def syncEtcdState(env_id: int, template: schemas.TemplateBase, db: Session = Depends(get_db)):
     envInfo = crud.getEnvs_by_id(db, env_id=env_id)
-    print(template.path)
+    if envInfo is None:
+        return {'type': 'error', 'msg': '数据不存在，无法同步'}
     etcdServer = GetEtcdApi(template.path)
     c = etcdServer.GetKey()
     if c['status_code'] == 200:
         if 'errorCode' in c['data'].keys():
             return {'state': 1, 'items': [c['data']['errorCode']]}
         r = hashTool(template.content, c['data']['node']['value'])
+
         if r:
             return {'state': 0, 'items': c['data']['node']['value']}
         else:

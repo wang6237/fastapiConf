@@ -39,11 +39,11 @@ export function syncEtcd(data) {
   })
 }
 
-export function syncEtcdDelete(path, envId) {
+export function syncEtcdDelete(envId, data) {
   return request({
-    url: '/v1/env/sync/',
+    url: '/v1/env/sync/' + envId,
     method: 'delete',
-    params: { path, envId }
+    data
   })
 }
 

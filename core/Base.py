@@ -42,14 +42,6 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256", "des_crypt"], deprecated="a
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/user/login")
 
 
-config = configparser.ConfigParser()
-try:
-    config.read('./config/config.ini')
-    # print(config.sections())
-except Exception as e:
-    print(e)
-
-
 class Token(BaseModel):     # 令牌空壳
     token: str
     token_type: str

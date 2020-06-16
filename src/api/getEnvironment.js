@@ -15,9 +15,10 @@ export function addEnvList(data) {
   })
 }
 
-export function editEnvList(id, data) {
+export function editEnvList(data) {
   return request({
-    url: '/v1/env/' + id,
+    // url: '/v1/env/'+id +'/' + template_name,
+    url: '/v1/env/',
     method: 'put',
     data
   })

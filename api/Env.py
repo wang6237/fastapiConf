@@ -21,6 +21,7 @@ from fastapi import Depends, APIRouter, Request
 from sqlalchemy.orm import Session
 from core.etcd import GetEtcdApi
 from core.Base import hashTool
+from typing import List
 from fastapi.encoders import jsonable_encoder
 # from starlette.requests import Request
 
@@ -43,6 +44,16 @@ async def getEnvList(page: int = 0, size: int = 100, db: Session = Depends(get_d
     return {'total': len(env_list), 'items': env_list}
 
 
+@router.delete("/{env_id}")
+async def deleteEnv(env_id: int, db: Session = Depends(get_db)):
+    env = crud.getEnvs_by_id(db, env_id=env_id)
+    if env:
+        crud.deleteEnv(db, env_id=env_id)
+        return {'type': 'success', 'msg': '删除成功'}
+    else:
+        return {'type': 'error', 'msg': '删除失败，数据不存在'}
+
+
 @router.get("/{env_id}")
 async def getEnv(env_id: int, db: Session = Depends(get_db)):
     r = crud.getEnvs_by_id(db, env_id=env_id)
@@ -52,18 +63,75 @@ async def getEnv(env_id: int, db: Session = Depends(get_db)):
         return {'type': 'error', 'msg': '数据不存在'}
 
 
-@router.put("/{env_id}")
-async def editEnv(env_id: int, env: schemas.Env, db: Session = Depends(get_db)):
-    temp = crud.getEnvs_by_id(db, env_id=env_id)
-    # print(temp.name)
-    if temp:
-        r = crud.editEnv(db, env_id=env_id, env=env)
+@router.put("/")
+async def editEnv(env: schemas.Env, db: Session = Depends(get_db)):
+    e = crud.getEnvs_by_name(db, env_name=env.name)
+    print("DB >>>>", e.content)
+    # print("Request >>>>", env.content)
+    print("Request >>>>", env.template_name)
+    c = []
+    path = env.path
+    if path[:-1] == '/':
+        pass
+    else:
+        path = path + '/'
+
+    if e:
+        new = json.loads(e.content)
+        # raise HTTPException(status_code=400, detail="The template name already exists")
+        # 循环db中template_name的数据，
+        for name in json.loads(e.template_name):
+            # print(0, name, env.template_name)
+            # db中存在，而新数据中不存在，这是减少了服务模板，这是要删除对应的数据，template_name和content中的数据
+            if name not in env.template_name:
+                # 删除template_name字段中对应的内容
+                # print(json.loads(e.template_name), name)
+                template_name_list = json.loads(e.template_name)
+                template_name_list.remove(name)
+                # 删除content字段中对应的内容
+                for i, cc in enumerate(new):
+                    # print(i, name, cc['name'])
+                    print("Path >>>>> ", cc['path'])
+                    etcdServer = GetEtcdApi(cc['path'])
+                    if name == cc['name']:
+                        new.pop(i)
+                        r = etcdServer.DeleteKye()
+        # print("已删掉>>>>>>>> ", e.content)
+        # 循环新数据中的template_name字段，是否已存在在DB中
+        for n in env.template_name:
+            if n not in e.template_name:
+                templ = crud.getTemplate_by_name(db, template_name=n)
+                if templ.path[0] == '/':
+                    templ.path = templ.path[1:]
+                    t = {
+                        'name': n,
+                        'path': path + templ.path,
+                        'content': templ.content
+                    }
+                    new.append(t)
+                else:
+                    t = {
+                        'name': n,
+                        'path': path + templ.path,
+                        'content': templ.content
+                    }
+                    new.append(t)
+                print('template>>>>>', new)
+            # else:
+            #     print(1, c, new)
+            #     new = json.dumps(new)
+            #     c.append(new)
+        env.content = json.dumps(new)
+        env.template_name = json.dumps(env.template_name)
+        r = crud.editEnv(db, env=env)
+        # return t
+        print(r)
         if r:
             return {'type': 'success', 'msg': '编辑成功'}
         else:
-            return {'type': 'error', 'msg': '编辑失败'}
+            return {'type': 'error', 'msg': '更新失败'}
     else:
-        return {'type': 'error', 'msg': '模板不存在'}
+        return {'type': 'error', 'msg': '更新失败,数据不存在'}
 
 
 @router.post("/")
@@ -102,20 +170,14 @@ async def createEnv(env: schemas.EnvCreate, db: Session = Depends(get_db)):
                 c.append(t)
             print('template>>>>>', c)
         env.content = json.dumps(c)
+        env.template_name = json.dumps(env.template_name)
+
+        # env.template_name = json.dumps(env.template_name)
+        print("HHHHH>>>>", env.template_name)
         crud.createEnv(db, env=env)
         # return t
         return {'type': 'success', 'msg': '增加成功'}
     # return {'type': 'success', 'msg': '增加成功'}
-
-
-@router.delete("/{env_id}")
-async def deleteEnv(env_id: int, db: Session = Depends(get_db)):
-    env = crud.getEnvs_by_id(db, env_id=env_id)
-    if env:
-        crud.deleteEnv(db, env_id=env_id)
-        return {'type': 'success', 'msg': '删除成功'}
-    else:
-        return {'type': 'error', 'msg': '删除失败，数据不存在'}
 
 
 @router.post("/sync/")
@@ -138,6 +200,7 @@ async def syncEtcdDelete(env_id: int, template: schemas.TemplateBase, db: Sessio
                 data.pop(index)
                 r = etcdServer.DeleteKye()
         envInfo.content = json.dumps(data)
+        print("envInfo >>>> ", envInfo)
         e = crud.editEnv(db, env_id=env_id, env=envInfo)
         print(e)
         return {'type': 'success', 'msg': '删除成功'}
@@ -145,11 +208,14 @@ async def syncEtcdDelete(env_id: int, template: schemas.TemplateBase, db: Sessio
 
 @router.put("/sync/state/{env_id}")
 async def syncEtcdState(env_id: int, template: schemas.TemplateBase, db: Session = Depends(get_db)):
+    # print(env_id)
     envInfo = crud.getEnvs_by_id(db, env_id=env_id)
     if envInfo is None:
         return {'type': 'error', 'msg': '数据不存在，无法同步'}
+    print(template.path)
     etcdServer = GetEtcdApi(template.path)
     c = etcdServer.GetKey()
+    print(c)
     if c['status_code'] == 200:
         if 'errorCode' in c['data'].keys():
             return {'state': 1, 'items': [c['data']['errorCode']]}

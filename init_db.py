@@ -25,7 +25,7 @@ from models.crud import get_user_by_name, create_user
 # from app.db import base
 
 ADMIN_USER = UserCreate(
-            username='xxx',
+            username='admin',
             email='xxxx@vip.qq.com',
             password='111111',
             role='admin',

@@ -25,6 +25,7 @@ router = APIRouter()
 @router.get("/")
 async def getTemplateList(page: int = 0, size: int = 100, db: Session = Depends(get_db)):
     r = crud.getTemplates(db, size=size, page=page)
+    print(r)
     return {'total': len(r), 'items': r}
 
 

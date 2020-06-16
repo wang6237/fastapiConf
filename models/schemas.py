@@ -20,9 +20,9 @@ from pydantic import BaseModel
 class EnvBase(BaseModel):
     name: str
     comment: str = None
-    template_name: List
     path: str
-    content: str
+    content: List[dict] = [{}]
+    template_name: List[str] = ['']
 
 
 class EnvCreate(EnvBase):

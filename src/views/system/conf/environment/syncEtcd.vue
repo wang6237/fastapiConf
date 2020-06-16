@@ -8,6 +8,7 @@
         <template slot-scope="props">
           <el-form label-position="left" inline class="demo-table-expand">
             <el-input   type="textarea" autosize v-model="props.row.content" ></el-input>
+            <el-button  type="primary" @click="reload()"> 提交 </el-button>
           </el-form>
         </template>
       </el-table-column>
@@ -28,6 +29,7 @@
         <template slot-scope="scope">
           <el-button size="mini" type="danger" @click="handleSyncEtcdDelete(scope.row, envId)"> 删除 </el-button>
           <el-button size="mini" type="primary" @click="handleSyncEtcd(scope.row)"> 同步 </el-button>
+          <el-button size="mini" type="primary" @click="reload()"> 刷新 </el-button>
           <el-button size="mini"  @click="handleComparison(scope.row.content, scope.row.etcdData)"> 对比 </el-button>
 
 
@@ -85,14 +87,14 @@
     },
     created() {
       // this.reload()
-      this.intervalid1 = setInterval(() => {
-      // 根据porjectSelected的值，刷新stack信息
-        this.reload()
-      }, 5000)
+      // this.intervalid1 = setInterval(() => {
+      // // 根据porjectSelected的值，刷新stack信息
+      //   this.reload()
+      // }, 5000)
     },
     methods: {
       handleSyncEtcd(row){
-        console.log(row)
+        console.log("Start Sync etcd.....")
         syncEtcd(row).then(res => {
           const msg = res.data.msg
           const type = res.data.type
@@ -173,9 +175,9 @@
 
       }
     },
-    beforeDestroy() {
-      clearInterval(this.intervalid1)
-    }
+    // beforeDestroy() {
+    //   clearInterval(this.intervalid1)
+    // }
   }
 
 </script>

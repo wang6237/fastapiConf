@@ -20,6 +20,7 @@ def getEnvs_by_name(db: Session, env_name: str):
 def createEnv(db: Session, env: schemas.EnvCreate):
     db_env = model.Environment(
         name=env.name,
+        template_name=env.template_name,
         content=env.content,
         comment=env.comment,
         path=env.path)
@@ -29,11 +30,12 @@ def createEnv(db: Session, env: schemas.EnvCreate):
     return db_env
 
 
-def editEnv(db: Session, env_id: int, env: schemas.Env):
+def editEnv(db: Session, env: schemas.Env):
     # print(1, template.name)
-    db_env = db.query(model.Environment).filter(model.Environment.id == env_id).update({
+    db_env = db.query(model.Environment).filter(model.Environment.id == env.id).update({
         'content': env.content,
-        'comment': env.comment
+        'comment': env.comment,
+        'template_name': env.template_name
     })
     db.commit()
     db.close()

@@ -66,6 +66,7 @@
           >
             编辑
           </el-button>
+
         </template>
       </el-table-column>
     </el-table>
@@ -220,9 +221,8 @@ export default {
         name: '',
         path: '',
         template_name: [],
-        content: '',
+        content: [],
         comment: '',
-        etcd_ip: ''
       },
       templateList: {
         items: [],
@@ -282,9 +282,8 @@ export default {
         name: '',
         path: '',
         template_name: [],
-        content: '',
+        content: [],
         comment: '',
-        etcd_ip: ''
       }
       this.templateSelect = []
       // console.log(val);
@@ -293,6 +292,7 @@ export default {
       getTemplateList().then(response => {
         // console.log("getEnvData",response.data)
         this.templateOption = response.data.items
+        console.log("template total >>>> ", response.data.total)
         // this.templateList['total'] = response.data.total
       })
       // getEtcdServerList().then(response => {
@@ -302,18 +302,20 @@ export default {
     add() {
       this.addEnvFormVisible = true
       // this.getEnvData()
-      console.log(this.templateSelect, this.etcdServerSelect)
+      console.log(this.templateSelect)
     },
     createDate() {
-      console.log(this.templateSelect, this.etcdServerSelect)
+      console.log(this.templateSelect)
       this.env.template_name = this.templateSelect
       // this.env.etcd_ip = this.etcdServerSelect
-      // console.log(this.env.content)
+      console.log("Content >>>>>> ",this.env)
+      // console.log(typeof this.env)
       // addEnvList(env)
       this.$refs['envDataForm'].validate(valid => {
         if (valid) {
           // this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           // this.temp.author = 'vue-element-admin'
+          // editEnvList(this.env).then(res => {
           addEnvList(this.env).then(res => {
             // console.log(res.data)
             const msg = res.data.msg
@@ -339,14 +341,23 @@ export default {
     },
     handleGetList(row) {
       // this.contentData = row.content
+      this.templateSelect = []
       this.env = row
+      // console.log("Row >>>> ",row)
+      // console.log("已选择的模板 1 >>> ",this.templateSelect)
+      // i = 1
       for (const t in this.env.content) {
         for (const i in this.templateOption) {
           if (this.env.content[t].name === this.templateOption[i].name) {
             this.templateOption[i].disabled = true
+            // this.templateSelect.push(this.templateOption[i].name)
           }
+
+          // this.templateSelect.push(this.templateOption[i].name)
         }
+      this.templateSelect.push(this.env.content[t].name)
       }
+      // console.log("已选择的模板 2 >>> ",this.templateSelect)
       this.editEnvFormVisible = true
     },
     handleDelete(id) {
@@ -372,15 +383,19 @@ export default {
       this.getEnvData()
     },
     editDate() {
-      console.log(this.env)
-      console.log(this.templateSelect)
+      // console.log(this.env)
+      // console.log(this.templateSelect)
       this.env.template_name = this.templateSelect
+      // console.log("Content >>>>> ",this.env.content)
+      // console.log("@@@@@@@@@@@@@")
+      // console.log(typeof this.env)
       this.$refs['envDataForm'].validate(valid => {
         if (valid) {
           // this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           // this.temp.author = 'vue-element-admin'
           let id = this.env.id
-          editEnvList(id,this.env).then(res => {
+          // addEnvList(this.env).then(res => {
+          editEnvList(this.env).then(res => {
             // console.log(res.data)
             const msg = res.data.msg
             const type = res.data.type

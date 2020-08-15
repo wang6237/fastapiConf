@@ -17,11 +17,12 @@ from sqlalchemy import create_engine, Boolean, Column, ForeignKey, Integer, Stri
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapiConf.sqlite"
+# SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapiConf.sqlite"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:123456@172.16.2.44/config"
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    # connect_args={"check_same_thread": False}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # sessionmaker 会话生成器
 # Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)

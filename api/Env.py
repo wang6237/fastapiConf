@@ -66,7 +66,7 @@ async def getEnv(env_id: int, db: Session = Depends(get_db)):
 @router.put("/")
 async def editEnv(env: schemas.Env, db: Session = Depends(get_db)):
     e = crud.getEnvs_by_name(db, env_name=env.name)
-    print("DB >>>>", e.content)
+    print("DB >>>>", e.template_name)
     # print("Request >>>>", env.content)
     print("Request >>>>", env.template_name)
     c = []
@@ -80,6 +80,7 @@ async def editEnv(env: schemas.Env, db: Session = Depends(get_db)):
         new = json.loads(e.content)
         # raise HTTPException(status_code=400, detail="The template name already exists")
         # 循环db中template_name的数据，
+        # if env.template_name
         for name in json.loads(e.template_name):
             # print(0, name, env.template_name)
             # db中存在，而新数据中不存在，这是减少了服务模板，这是要删除对应的数据，template_name和content中的数据
@@ -201,7 +202,7 @@ async def syncEtcdDelete(env_id: int, template: schemas.TemplateBase, db: Sessio
                 r = etcdServer.DeleteKye()
         envInfo.content = json.dumps(data)
         print("envInfo >>>> ", envInfo)
-        e = crud.editEnv(db, env_id=env_id, env=envInfo)
+        e = crud.editEnv(db, env=envInfo)
         print(e)
         return {'type': 'success', 'msg': '删除成功'}
 
@@ -212,7 +213,7 @@ async def syncEtcdState(env_id: int, template: schemas.TemplateBase, db: Session
     envInfo = crud.getEnvs_by_id(db, env_id=env_id)
     if envInfo is None:
         return {'type': 'error', 'msg': '数据不存在，无法同步'}
-    print(template.path)
+    # print(template.path)
     etcdServer = GetEtcdApi(template.path)
     c = etcdServer.GetKey()
     print(c)
@@ -227,3 +228,51 @@ async def syncEtcdState(env_id: int, template: schemas.TemplateBase, db: Session
             return {'state': 1, 'items': c['data']['node']['value']}
     else:
         return {'state': 1, 'items': []}
+
+
+@router.post("/get_etcd/")
+async def getEtcdData(template: schemas.TemplateBase):
+    print(template)
+    etcdServer = GetEtcdApi(template.path)
+    c = etcdServer.GetKey()
+    if c['status_code'] == 200:
+        if 'errorCode' in c['data'].keys():
+            return {'state': 1, 'items': [c['data']['errorCode']]}
+        else:
+            return {'state': 0, 'items': c['data']['node']['value']}
+    else:
+        return {'state': 1, 'items': []}
+
+
+@router.put("/update_etcd/{env_id}")
+async def updateEtcdData(env_id: int, template: schemas.TemplateBase, db: Session = Depends(get_db)):
+    """
+    1、先更新etcd中的数据，在更新db中的数据
+    2、如果出错，就回滚。
+    :param db: 数据库
+    :param env_id: 更新数据库时需要
+    :param template: 更新数据
+    :return: type [success/error; msg [成功/失败]
+    """
+    print(env_id)
+    etcdServer = GetEtcdApi(template.path)
+    c = etcdServer.UpdateKey(template.content)
+    if c['status_code'] == 200:
+        r = crud.getEnvs_by_id(db, env_id)
+        print(r.template_name)
+        if r:
+            template_list = []
+            if template.name in json.dumps(r.template_name):
+                # print(template.name)
+                for t in json.loads(r.content):
+                    # print(t['name'])
+                    if template.name == t['name']:
+                        t['content'] = template.content
+                    template_list.append(t)
+                r.content = json.dumps(template_list)
+                print(r)
+                crud.editEnv(db, r)
+        return {'type': 'success', 'msg': '更新成功'}
+    else:
+        return {'type': 'error', 'msg': '更新失败'}
+

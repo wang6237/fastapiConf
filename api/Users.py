@@ -71,19 +71,67 @@ async def get_user_info():
         'roles': ['admin'],
         'introduction': 'I am a super administrator',
         'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-        'name': 'Super Admin'
+        'name': 'Super Admin',
+        'menu': [
+        {
+            'name': '名称',
+            'path': '/test1',
+            'component': '',
+            'meta': {'title': 'Dashboard', 'icon': 'dashboard'}
+        },
+        {
+            'name': '名称2',
+            'path': '/test2',
+            'component': '',
+            'meta': {'title': 'Dashboard2', 'icon': 'dashboard2'}
+        }
+    ]
     }
     return userinfo
 
 
-# # 用ID的方式读取用户
-# @router.get("/{user_id}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
-# async def read_user(user_id: int, db: Session = Depends(get_db)):
-#     print(user_id)
-#     db_user = crud.get_user(db, user_id=user_id)
-#     if db_user is None:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     return db_user
+# 用ID的方式读取用户
+@router.get("/{user_id}", response_model=schemas.User, dependencies=[Depends(get_token_header)])
+async def read_user(user_id: int, db: Session = Depends(get_db)):
+    print(user_id)
+    db_user = crud.get_user(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+
+# 测试动态菜单，
+@router.get("/menu/", dependencies=[Depends(get_token_header)])
+async def get_menus(db: Session = Depends(get_db)):
+    # print(user_id)
+    # user_id = 1
+    menuList = [{
+        "children": [
+          {
+            "create_time": "2018-03-16 11:33:00",
+            "menu_type": "C",
+            "parent_id": 2,
+            "menu_name": "数据监控",
+            "icon": "#",
+            "perms": "monitor:data:view",
+            "order_num": 3,
+            "menu_id": 15,
+            "url": "/system/druid/monitor"
+          }
+        ],
+        "parent_id": 0,
+        "menu_name": "系统监控",
+        "icon": "fa fa-video-camera",
+        "perms": 'null',
+        "order_num": 5,
+        "menu_id": 2,
+        "layout": True,
+        "url": "/test"
+      }]
+    # db_user = crud.get_user(db, user_id=user_id)
+    # if db_user is None:
+    #     raise HTTPException(status_code=404, detail="User not found")
+    return {'state': 0, 'menuList': menuList}
 
 
 @router.get("/{username}", response_model=schemas.User, dependencies=[Depends(get_token_header)])

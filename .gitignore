@@ -10,3 +10,6 @@ __pycache__/
 node_modules/
 venv/
 fastapiConf.sqlite
+dist/
+yarn-error.log
+yarn.lock

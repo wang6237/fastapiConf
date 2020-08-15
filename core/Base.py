@@ -111,7 +111,7 @@ def get_current_user(token: str = Security(oauth2_scheme)):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # print(payload)
     except PyJWTError:
-        print('ccccc')
+        # print('ccccc')
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
         )
@@ -122,6 +122,7 @@ async def get_token_header(request: Request):
     # print(request.headers)
     try:
         token = request.headers['authorization'].split(' ')[1]
+        # print(token)
         r = get_current_user(token=token)
     except KeyError:
         raise HTTPException(status_code=403, detail="authorization header invalid, please do login")

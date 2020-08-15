@@ -1,2 +1,5 @@
 # fastapiConf
-flaskConf项目的fastapi的实现 
+- [ ] 简单的用户管理和授权
+- [ ] 模板的管理，增删改查
+- [ ] 
+

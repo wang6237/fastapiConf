@@ -13,14 +13,23 @@
 """
 __author__ = 'wang6237'
 import requests
-import json
-import hashlib
+# import config
+# import json
+# import hashlib
 import configparser
+import os
 
-config = configparser.ConfigParser()
+# 用os模块来读取
+curpath = os.path.dirname(os.path.realpath(__file__))
+cfgpath = os.path.join(curpath, "../config/config.ini")  # 读取到本机的配置文件
+
+# 调用读取配置模块中的类
+conf = configparser.ConfigParser()
+
+# 调用get方法，然后获取配置的数据
 try:
-    config.read('/config/config.ini')
-    print('@@@@@@@@@2', config.sections(), 'F!!!!!!!!!')
+    conf.read(cfgpath)
+    print('@@@@@@@@@2111', conf.sections(), 'F!!!!!!!!!')
 except Exception as e:
     print(e)
 
@@ -32,9 +41,9 @@ class GetEtcdApi(object):
 
     def __init__(self, key):
         # config.get("etcd","etcdBaseUrl")
-        # print(config.sections(), '>>>>>>>>>')
-        # self.url = config.get("etcd", "etcdBaseUrl") + key
-        self.url = "http://127.0.0.1:4001/v2/keys" + key
+        # print(conf.sections(), '>>>>>>>>>')
+        self.url = conf.get("etcd", "etcdBaseUrl") + key
+        # self.url = "http://127.0.0.1:4001/v2/keys" + key
         super(GetEtcdApi, self).__init__()
 
     def GetKey(self):
@@ -58,7 +67,8 @@ class GetEtcdApi(object):
         try:
             r = requests.put(self.url, data=data)
             # print(r.status_code)
-            return r.json()
+            d = {'status_code': 200, 'data': r.json()}
+            return d
         except requests.exceptions.ConnectionError:
             return {'status_code': -1, 'data': '无法连接到etcd....'}
 

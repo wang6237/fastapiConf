@@ -159,6 +159,7 @@
             multiple
             placeholder="请选择模板"
             style="width: 100%"
+            @remove-tag="tagList"
           >
             <el-option
               v-for="item in templateOption"
@@ -222,12 +223,13 @@ export default {
         path: '',
         template_name: [],
         content: [],
-        comment: '',
+        comment: ''
       },
       templateList: {
         items: [],
         total: 0
       },
+      tagList: [],
       templateOption: [],
       templateSelect: [],
       // etcdServerOption: [],
@@ -283,7 +285,7 @@ export default {
         path: '',
         template_name: [],
         content: [],
-        comment: '',
+        comment: ''
       }
       this.templateSelect = []
       // console.log(val);
@@ -292,7 +294,7 @@ export default {
       getTemplateList().then(response => {
         // console.log("getEnvData",response.data)
         this.templateOption = response.data.items
-        console.log("template total >>>> ", response.data.total)
+        // console.log("template total >>>> ", response.data.items)
         // this.templateList['total'] = response.data.total
       })
       // getEtcdServerList().then(response => {
@@ -308,7 +310,7 @@ export default {
       console.log(this.templateSelect)
       this.env.template_name = this.templateSelect
       // this.env.etcd_ip = this.etcdServerSelect
-      console.log("Content >>>>>> ",this.env)
+      console.log('Content >>>>>> ', this.env)
       // console.log(typeof this.env)
       // addEnvList(env)
       this.$refs['envDataForm'].validate(valid => {
@@ -355,7 +357,7 @@ export default {
 
           // this.templateSelect.push(this.templateOption[i].name)
         }
-      this.templateSelect.push(this.env.content[t].name)
+        this.templateSelect.push(this.env.content[t].name)
       }
       // console.log("已选择的模板 2 >>> ",this.templateSelect)
       this.editEnvFormVisible = true
@@ -386,6 +388,28 @@ export default {
       // console.log(this.env)
       // console.log(this.templateSelect)
       this.env.template_name = this.templateSelect
+      // console.log("option >>>>>>>>",this.templateOption)
+      // console.log(typeof (this.templateSelect))
+      // this.templateOption.forEach()
+      for (const i in this.templateOption) {
+        // console.log(">>>>>>>>", this.templateOption[i].disabled)
+        if (this.templateOption[i].disabled) {
+          console.log('1>>>>>>>>', this.templateSelect.indexOf(this.templateOption[i].name))
+          if (this.templateSelect.indexOf(this.templateOption[i].name) >= 0) {
+            console.log('old ', this.templateOption[i].name)
+          } else {
+            console.log('removed ....', this.templateOption[i].name)
+          }
+        } else {
+          console.log('2>>>>>>>>', this.templateSelect.indexOf(this.templateOption[i].name))
+          if (this.templateSelect.indexOf(this.templateOption[i].name) >= 0) {
+            console.log('add ......', this.templateOption[i].name)
+          } else {
+            console.log('nothing ...', this.templateOption[i].name)
+          }
+        }
+      }
+      // console.log(this.templateSelect)
       // console.log("Content >>>>> ",this.env.content)
       // console.log("@@@@@@@@@@@@@")
       // console.log(typeof this.env)
@@ -393,7 +417,8 @@ export default {
         if (valid) {
           // this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           // this.temp.author = 'vue-element-admin'
-          let id = this.env.id
+          // console.log('>>>>>>>>>>>env>>>>>>', this.env)
+          // let id = this.env.id
           // addEnvList(this.env).then(res => {
           editEnvList(this.env).then(res => {
             // console.log(res.data)

@@ -1,6 +1,6 @@
 import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
-import { resetRouter } from '@/router'
+import { resetRouter, asyncRoutes } from '@/router'
 
 const getDefaultState = () => {
   return {
@@ -8,6 +8,7 @@ const getDefaultState = () => {
     name: '',
     avatar: '',
     roles: []
+    // menu: []
   }
 }
 
@@ -47,11 +48,25 @@ const actions = {
     })
   },
 
+  // getMenu({state}) {
+  //   return new Promise(((resolve, reject) => {
+  //     getMenu().then(response => {
+  //       const { data } = response
+  //       console.log(data)
+  //       // commit('SET_MENU', menu)
+  //       resolve()
+  //     }).catch(error => {
+  //       reject(error)
+  //     })
+  //   }))
+  // },
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
+        // console.log("getInfo >>>>>>>", data.menu)
+        // asyncRoutes.push(data.menu)
 
         if (!data) {
           reject('Verification failed, please Login again.')

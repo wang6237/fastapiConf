@@ -51,24 +51,24 @@ service.interceptors.response.use(
 
     // if the custom code is not 20000, it is judged as an error.
     if (res.status === 403) {
-      console.log("403")
+      console.log('403')
       MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
-          confirmButtonText: 'Re-Login',
-          cancelButtonText: 'Cancel',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
+        confirmButtonText: 'Re-Login',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        store.dispatch('user/resetToken').then(() => {
+          location.reload()
         })
-      
+      })
+
       // *这里只针对状态是200的情况，做了处理，其他的可以在这里处理。
       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
       // if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
       //   // to re-login
-        
+
       // }
-      
+
       // return Promise.reject(new Error(res.message || 'Error'))
     } else if (res.status !== 200) {
       Message({

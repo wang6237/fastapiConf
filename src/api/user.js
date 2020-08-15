@@ -16,6 +16,14 @@ export function getInfo() {
   })
 }
 
+export function getMenu() {
+  return request({
+    url: 'v1/user/menu/',
+    method: 'get',
+    // params: { userId }
+  })
+}
+
 export function getUserListInfo() {
   return request({
     url: 'v1/user/',

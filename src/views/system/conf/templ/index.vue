@@ -159,7 +159,7 @@ export default {
       // console.log()
       this.listLoading = true
 
-      const { page, limit } = this.listQuery
+      // const { page, limit } = this.listQuery
       getTemplateList().then(response => {
         this.list = response.data.items
         this.total = response.data.total

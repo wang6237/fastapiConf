@@ -55,3 +55,19 @@ export function syncState(envId, data) {
     data
   })
 }
+
+export function getEtcdData(data) {
+  return request({
+    url: '/v1/env/get_etcd/',
+    method: 'post',
+    data
+  })
+}
+
+export function updateEtcdData(envId, data) {
+  return request({
+    url: '/v1/env/update_etcd/' + envId,
+    method: 'put',
+    data
+  })
+}
